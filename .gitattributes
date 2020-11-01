@@ -1,0 +1,4 @@
+*.pb filter=lfs diff=lfs merge=lfs -text
+*.data-00000-of-00001 filter=lfs diff=lfs merge=lfs -text
+yolo4/checkpoints/yolov4-416-coco/saved_model.pb filter=lfs diff=lfs merge=lfs -text
+yolo4/checkpoints/yolov4-416-coco/variables/variables.data-00000-of-00001 filter=lfs diff=lfs merge=lfs -text
