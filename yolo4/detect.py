@@ -70,6 +70,7 @@ def main(_argv):
                     # unloading the model to free the memory
                     saved_model_loaded = None
                     infer = None
+                    tf.keras.backend.clear_session()
                     gc.collect()
                     log("Model unloaded to free the memory")
                 continue
