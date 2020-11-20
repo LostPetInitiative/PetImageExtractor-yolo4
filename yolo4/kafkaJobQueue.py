@@ -1,6 +1,7 @@
 import json
 import base64
 import kafka
+import asyncio
 from kafka.admin import KafkaAdminClient, NewTopic
 
 def strSerializer(jobName):
@@ -60,6 +61,11 @@ class JobQueueProducer(JobQueue):
 
     async def Enqueue(self, jobName, jobBody):
         return self.producer.send(self.topicName, value=jobBody, key= jobName)
+
+    def EnqueueSync(self, jobName, jobBody):
+        # for python < 3.7
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(asyncio.wait([self.Enqueue(jobName, jobBody)]))
 
 class JobQueueWorker(JobQueue):
     '''Fetchs sobs as JSON serialized python dicts'''
