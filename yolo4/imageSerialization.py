@@ -43,10 +43,7 @@ def imagesFieldToNp(images):
             with open(imageFilePath, "wb") as file1:             
                 file1.write(imageData)
             try:
-                if imageFilePath.endswith(".png"):
-                    imNumpy = io.imread(imageFilePath,plugin='imread')
-                else:
-                    imNumpy = io.imread(imageFilePath)
+                imNumpy = io.imread(imageFilePath)
                 imagesNp.append(imNumpy)
             except Exception as exc1:
                 print("Error calulating hash for one of the images ({0})".format(exc1))        

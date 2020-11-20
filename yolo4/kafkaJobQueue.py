@@ -46,6 +46,14 @@ class JobQueue:
             print("Topic {0} already exists".format(topicName))
         admin_client.close()
 
+def get_or_create_eventloop():
+    try:
+        return asyncio.get_event_loop()
+    except RuntimeError as ex:
+        if "There is no current event loop in thread" in str(ex):
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            return asyncio.get_event_loop()
 
 class JobQueueProducer(JobQueue):
     '''Posts Jobs as JSON serialized python dicts'''
@@ -64,7 +72,7 @@ class JobQueueProducer(JobQueue):
 
     def EnqueueSync(self, jobName, jobBody):
         # for python < 3.7
-        loop = asyncio.get_event_loop()
+        loop = get_or_create_eventloop()
         loop.run_until_complete(asyncio.wait([self.Enqueue(jobName, jobBody)]))
 
 class JobQueueWorker(JobQueue):
