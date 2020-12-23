@@ -1,4 +1,5 @@
 import tensorflow as tf
+import kafkajobs
 physical_devices = tf.config.experimental.list_physical_devices('GPU')
 if len(physical_devices) > 0:
     tf.config.experimental.set_memory_growth(physical_devices[0], True)
@@ -16,10 +17,6 @@ import multiprocessing
 
 import gc
 
-
-import kafkaJobQueue
-import imageSerialization
-
 import shutil
 import os
 
@@ -29,8 +26,10 @@ outputQueueName = os.environ['OUTPUT_QUEUE']
 
 appName = "AnimalImageDetector"
 
-worker = kafkaJobQueue.JobQueueWorker(appName, kafkaBootstrapUrl=kafkaUrl, topicName=inputQueueName, appName=appName)
-resultQueue = kafkaJobQueue.JobQueueProducer(kafkaUrl, outputQueueName, appName)
+maxProcessingTimeSec = 30*60 # it is allowed to process the single card
+
+worker = kafkajobs.jobqueue.JobQueueWorker(appName, maxProcessingTimeSec, kafkaBootstrapUrl=kafkaUrl, topicName=inputQueueName, appName=appName)
+resultQueue = kafkajobs.jobqueue.JobQueueProducer(kafkaUrl, outputQueueName, appName)
 
 cpuCount = multiprocessing.cpu_count()
 
@@ -81,7 +80,7 @@ def main(_argv):
             images = job['images']
             log("{0}: Extracting {1} images".format(uid, len(images)))
             
-            imagesNp = imageSerialization.imagesFieldToNp(images)
+            imagesNp = kafkajobs.serialization.imagesFieldToNp(images)
 
             if infer is None:
                 print("Loading model {0}".format(FLAGS.weights))
@@ -292,12 +291,12 @@ def main(_argv):
             
             log("{0}: Detected needed pet ({2}) on {1} images out of {3} initial images".format(uid, len(rotations), job['animal'], len(imagesNp)))
 
-            job["annotated_images"] = imageSerialization.imagesNpToStrList(annotatedImages)
-            job["detected_pet_images"] = imageSerialization.imagesNpToStrList(foundPetImages)
+            job["annotated_images"] = kafkajobs.serialization.imagesNpToStrList(annotatedImages)
+            job["detected_pet_images"] = kafkajobs.serialization.imagesNpToStrList(foundPetImages)
             job["detected_pet_scores"] = bestScores
             job["detected_pet_rotations"] = rotations
 
-            resultQueue.EnqueueSync(uid, job)
+            resultQueue.Enqueue(uid, job)
             log("{0}: Posted result in output queue".format(uid))
             worker.Commit()
             log("{0}: Commited".format(uid))
