@@ -26,7 +26,7 @@ outputQueueName = os.environ['OUTPUT_QUEUE']
 
 appName = "AnimalImageDetector"
 
-maxProcessingTimeSec = 30*60 # it is allowed to process the single card
+maxProcessingTimeSec = 60*60 # it is allowed to process the single card
 
 worker = kafkajobs.jobqueue.JobQueueWorker(appName, maxProcessingTimeSec, kafkaBootstrapUrl=kafkaUrl, topicName=inputQueueName, appName=appName)
 resultQueue = kafkajobs.jobqueue.JobQueueProducer(kafkaUrl, outputQueueName, appName)
